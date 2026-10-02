@@ -251,7 +251,96 @@ const headers=['Case Number','Date','Procedure','ASA','Postop care','PCA','IT Di
 function exportRows(){const rows=[headers];cases.slice().sort((a,b)=>(Number(a.caseNumber)||0)-(Number(b.caseNumber)||0)).forEach(c=>{const obs=c.observations?.length?c.observations:[{}];obs.forEach((o,i)=>rows.push([i===0?c.caseNumber:'',i===0?c.date:'',i===0?c.procedure:'',i===0?c.asa:'',i===0?c.postopCare:'',i===0?c.pca:'',i===0?c.itDiamorph:'',i===0?c.rsc:'',i===0?c.postopPrescriptions:'',i===0?c.poPara:'',i===0?c.ivPara:'',i===0?c.codeine:'',i===0?c.ibuprofen:'',i===0?c.oralOpiates:'',i===0?c.pcaStartTime:'',i===0?c.rscStartTime:'',i===0?c.itTime:'',i===0?c.recoveryTime:'',i===0?c.dischargeTime:'',o.requiredAt||'',o.reason||'',o.observationPostop||'',o.actualTime||(o.actualDate&&o.actualClock?`${o.actualDate}T${o.actualClock}`:''),o.painScore||'',o.nvScore||'',o.sedationScore||'',o.functionalActivity||'',o.itching||'',o.hallucination||'',o.totalPca||'',o.laBolus||'',o.rscRate||'',o.laToxicity||'',o.laSite||'',o.motorPower||'',o.sensoryScore||'',o.dermatomeHeight||'',o.slt||'']))});return rows}
 $('#exportExcel').onclick=()=>{const ws=XLSX.utils.aoa_to_sheet(exportRows());ws['!cols']=headers.map((h,i)=>({wch:i===2?45:Math.max(12,Math.min(24,h.length+2))}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Audit Data');XLSX.writeFile(wb,`Gynae_Audit_${new Date().toISOString().slice(0,10)}.xlsx`)};
 $('#exportBackup').onclick=()=>{const blob=new Blob([JSON.stringify({version:3,auditMonday:AUDIT_MONDAY,exportedAt:new Date().toISOString(),cases},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Gynae_Audit_Backup_${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
-$('#importBackup').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text()),incoming=Array.isArray(j)?j:j.cases;if(!Array.isArray(incoming))throw Error();if(!confirm(`Import ${incoming.length} case(s)? This will replace the cases currently on this device.`))return;cases=incoming;if(j.auditMonday)localStorage.setItem(WEEK_KEY,j.auditMonday);saveLocal();alert('Backup imported successfully.');showView('home')}catch{alert('This is not a valid audit backup file.')}finally{e.target.value=''}};
+$('#importBackup').onchange = async e => {
+
+  const f = e.target.files[0];
+  if (!f) return;
+
+  try {
+
+    const j =
+      JSON.parse(await f.text());
+
+    const incoming =
+      Array.isArray(j)
+        ? j
+        : j.cases;
+
+    if (!Array.isArray(incoming)) {
+      throw new Error(
+        'Invalid backup'
+      );
+    }
+
+    if (
+      !confirm(
+        `Import ${incoming.length} case(s)? This will replace the current cloud audit data.`
+      )
+    ) {
+      return;
+    }
+
+    // Remove current cloud cases.
+    const { error: deleteError } =
+      await supabaseClient
+        .from('gynae_audit_cases')
+        .delete()
+        .not('id', 'is', null);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    // Upload backup cases.
+    for (const c of incoming) {
+
+      if (!c.id) {
+        c.id =
+          crypto.randomUUID();
+      }
+
+      const success =
+        await saveCaseToSupabase(c);
+
+      if (!success) {
+        throw new Error(
+          'Unable to upload one or more cases.'
+        );
+      }
+    }
+
+    if (j.auditMonday) {
+      localStorage.setItem(
+        WEEK_KEY,
+        j.auditMonday
+      );
+    }
+
+    await loadFromSupabase();
+
+    alert(
+      'Backup imported to Supabase successfully.'
+    );
+
+    showView('home');
+
+  } catch (error) {
+
+    console.error(
+      'Backup import error:',
+      error
+    );
+
+    alert(
+      'The backup could not be imported.'
+    );
+
+  } finally {
+
+    e.target.value = '';
+
+  }
+};
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker
     .register('./sw.js')
