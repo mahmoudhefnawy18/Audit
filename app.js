@@ -1,3 +1,15 @@
+const SUPABASE_URL =
+  "https://epdinlgqlxfezrjjyhmk.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_xtEL7D8kZQiPiPMuXj-5ww_ibXNJhbr";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
 const STORE='gynae-audit-v3';
 const WEEK_KEY='gynae-audit-week-monday';
 let cases=JSON.parse(localStorage.getItem(STORE)||localStorage.getItem('gynae-audit-v2')||localStorage.getItem('gynae-audit-v1')||'[]');
