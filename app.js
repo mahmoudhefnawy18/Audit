@@ -204,7 +204,47 @@ function editCase(id) {
   if (!c) return;
   resetForm();
 $('#caseId').value=c.id;$('#caseNumber').value=(Number(c.caseNumber)>=1?c.caseNumber:nextNo());$('#caseDate').value=c.date||AUDIT_MONDAY;$('#procedure').value=c.procedure||'';$('#asa').value=c.asa||'';$('#postopCare').value=c.postopCare||'';$('#pca').value=c.pca||'No';$('#itDiamorph').value=c.itDiamorph||'No';$('#rsc').value=c.rsc||'No';$('#postopPrescriptions').value=c.postopPrescriptions||'Protocol';['poPara','ivPara','codeine','ibuprofen','oralOpiates'].forEach(k=>$('#'+k).value=c[k]??0);splitDT(c.pcaStartTime,'pcaStartDate','pcaStartClock');splitDT(c.rscStartTime,'rscStartDate','rscStartClock');splitDT(c.itTime,'itDate','itClock');splitDT(c.recoveryTime,'recoveryDate','recoveryClock');splitDT(c.dischargeTime,'dischargeDate','dischargeClock');(c.observations||[]).forEach(addObservation);$('#deleteCase').classList.remove('hidden');updateConditional();$('#scheduleHint').textContent=c.observations?.length?`${c.observations.length} required observation time(s).`:'';showView('form')}
-$('#deleteCase').onclick=()=>{const id=val('caseId');if(!id){alert('Unable to identify this case. Please return to Cases and reopen it.');return}if(!confirm('Delete this case?'))return;cases=cases.filter(c=>c.id!==id);saveLocal();resetForm();showView('home')};
+$('#deleteCase').onclick = async () => {
+
+  const id = val('caseId');
+
+  if (!id) {
+    alert(
+      'Unable to identify this case. Please return to Cases and reopen it.'
+    );
+    return;
+  }
+
+  if (!confirm('Delete this case?')) {
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from('gynae_audit_cases')
+      .delete()
+      .eq('id', id);
+
+  if (error) {
+    console.error(
+      'Supabase delete error:',
+      JSON.stringify(error, null, 2)
+    );
+
+    alert(
+      'Unable to delete this case from Supabase.'
+    );
+
+    return;
+  }
+
+  cases =
+    cases.filter(c => c.id !== id);
+
+  saveLocal();
+  resetForm();
+  showView('home');
+};
 function renderCases(){$('#caseCount').textContent=cases.length;$('#obsCount').textContent=cases.reduce((a,c)=>a+(c.observations?.length||0),0);$('#incompleteCount').textContent=cases.filter(c=>!c.procedure||!c.asa).length;$('#auditWeek').textContent=`Audit week: ${new Date(AUDIT_MONDAY+'T12:00:00').toLocaleDateString([], {day:'2-digit',month:'short',year:'numeric'})} – ${new Date(datePlus(AUDIT_MONDAY,6)+'T12:00:00').toLocaleDateString([], {day:'2-digit',month:'short',year:'numeric'})}`;const area=$('#caseList');area.innerHTML='';if(!cases.length){area.innerHTML='<div class="empty">No cases yet.<br>Tap “New patient” to start.</div>';return}cases.slice().sort((a,b)=>(Number(b.caseNumber)||0)-(Number(a.caseNumber)||0)).forEach(c=>{const d=document.createElement('div');d.className='case-item';d.innerHTML=`<div><b>Case ${Number(c.caseNumber)>=1?c.caseNumber:'—'}</b><small>${c.date||''} · ${esc(c.procedure||'No procedure')}<br>${c.observations?.length||0} scheduled observation(s)</small></div><button type="button">Edit</button>`;d.querySelector('button').onclick=()=>editCase(c.id);area.appendChild(d)})}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 const headers=['Case Number','Date','Procedure','ASA','Postop care','PCA','IT Diamorphine','RSC','Postop prescriptions','PO Paracetamol doses','IV Paracetamol doses','Codeine doses','Ibuprofen doses','Oral Opiates','PCA start','RSC start','IT Diamorphine time','Recovery arrival','Discharge','Minimum required','Monitoring reason','Observation postop','Actual observation time','Pain score','N & V score','Sedation score','Function activity','Itching','Hallucination','Total PCA administered','LA bolus','RSC rate','LA toxicity score','LA site assessment','Motor power','Sensory score','Dermatome height','SLT'];
