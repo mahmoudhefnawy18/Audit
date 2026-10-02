@@ -33,10 +33,10 @@ async function loadFromSupabase() {
       });
 
   if (error) {
-    console.error(
-      'Supabase load error:',
-      error
-    );
+   console.error(
+  'Supabase load error:',
+  JSON.stringify(error, null, 2)
+);
 
     // Keep using the local copy if
     // Supabase is temporarily unavailable.
