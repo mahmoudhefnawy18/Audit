@@ -83,8 +83,122 @@ function generateSchedule(){if(!monitoringSelected()){$('#observations').innerHT
 $('#generateObs').onclick=generateSchedule;['pcaStartDate','pcaStartClock','rscStartDate','rscStartClock','itDate','itClock','recoveryDate','recoveryClock','dischargeDate','dischargeClock'].forEach(id=>$('#'+id).addEventListener('change',generateSchedule));
 function addObservation(data={}){const node=$('#obsTemplate').content.cloneNode(true);const obs=node.querySelector('.obs');obs.querySelector('[data-k="requiredAt"]').value=data.requiredAt||'';obs.querySelector('[data-k="reason"]').value=data.reason||'';obs.querySelector('[data-k-display="requiredAt"]').textContent=fmt(data.requiredAt);obs.querySelector('[data-k-display="reason"]').textContent=data.reason||'';obs.querySelectorAll('[data-k]').forEach(el=>{if(['requiredAt','reason','actualDate','actualClock'].includes(el.dataset.k))return;if(data[el.dataset.k]!==undefined)el.value=data[el.dataset.k]??''});let actualDate=data.actualDate||'',actualClock=data.actualClock||'';if(data.actualTime&&data.actualTime.includes('T'))[actualDate,actualClock]=data.actualTime.split('T');obs.querySelector('[data-k="actualDate"]').value=actualDate||((data.requiredAt||'').split('T')[0]||AUDIT_MONDAY);obs.querySelector('[data-k="actualClock"]').value=(actualClock||'09:00').slice(0,5);const sel=obs.querySelector('[data-k="observationPostop"]'),ad=obs.querySelector('[data-k="actualDate"]'),at=obs.querySelector('[data-k="actualClock"]'),pill=obs.querySelector('.status-pill');function status(){pill.textContent=sel.value==='Y'?'Done':sel.value==='N'?'Missed':'Due';pill.className='status-pill '+(sel.value==='Y'?'done':sel.value==='N'?'missed':'')}sel.onchange=()=>{if(sel.value==='Y'&&data.requiredAt){const [dd,tt]=data.requiredAt.split('T');ad.value=dd;at.value=tt.slice(0,5)}status()};status();$('#observations').appendChild(node)}
 function collectObs(){return $$('#observations .obs').map(o=>{const x={};o.querySelectorAll('[data-k]').forEach(el=>x[el.dataset.k]=el.value);x.actualTime=x.actualDate&&x.actualClock?`${x.actualDate}T${x.actualClock}`:'';return x})}
-$('#caseForm').onsubmit=e=>{e.preventDefault();if(monitoringSelected()&&!$('#observations').children.length){generateSchedule();if(!$('#observations').children.length&&!confirm('No observation schedule could be generated. Save anyway?'))return}const id=val('caseId')||crypto.randomUUID();const c={id,caseNumber:Number(val('caseNumber'))||nextNo(),date:val('caseDate'),procedure:val('procedure'),asa:val('asa'),postopCare:val('postopCare'),pca:val('pca'),itDiamorph:val('itDiamorph'),rsc:val('rsc'),postopPrescriptions:val('postopPrescriptions'),poPara:num('poPara'),ivPara:num('ivPara'),codeine:num('codeine'),ibuprofen:num('ibuprofen'),oralOpiates:num('oralOpiates'),pcaStartTime:combineDT('pcaStartDate','pcaStartClock'),rscStartTime:combineDT('rscStartDate','rscStartClock'),itTime:combineDT('itDate','itClock'),recoveryTime:combineDT('recoveryDate','recoveryClock'),dischargeTime:combineDT('dischargeDate','dischargeClock'),observations:monitoringSelected()?collectObs():[],updatedAt:new Date().toISOString()};const i=cases.findIndex(x=>x.id===id);if(i>=0)cases[i]=c;else cases.push(c);saveLocal();showView('home')};
-function editCase(id){const c=cases.find(x=>x.id===id);if(!c)return;resetForm();$('#caseId').value=c.id;$('#caseNumber').value=(Number(c.caseNumber)>=1?c.caseNumber:nextNo());$('#caseDate').value=c.date||AUDIT_MONDAY;$('#procedure').value=c.procedure||'';$('#asa').value=c.asa||'';$('#postopCare').value=c.postopCare||'';$('#pca').value=c.pca||'No';$('#itDiamorph').value=c.itDiamorph||'No';$('#rsc').value=c.rsc||'No';$('#postopPrescriptions').value=c.postopPrescriptions||'Protocol';['poPara','ivPara','codeine','ibuprofen','oralOpiates'].forEach(k=>$('#'+k).value=c[k]??0);splitDT(c.pcaStartTime,'pcaStartDate','pcaStartClock');splitDT(c.rscStartTime,'rscStartDate','rscStartClock');splitDT(c.itTime,'itDate','itClock');splitDT(c.recoveryTime,'recoveryDate','recoveryClock');splitDT(c.dischargeTime,'dischargeDate','dischargeClock');(c.observations||[]).forEach(addObservation);$('#deleteCase').classList.remove('hidden');updateConditional();$('#scheduleHint').textContent=c.observations?.length?`${c.observations.length} required observation time(s).`:'';showView('form')}
+$('#caseForm').onsubmit = async e => {
+
+  e.preventDefault();
+
+  if (
+    monitoringSelected() &&
+    !$('#observations').children.length
+  ) {
+
+    generateSchedule();
+
+    if (
+      !$('#observations').children.length &&
+      !confirm(
+        'No observation schedule could be generated. Save anyway?'
+      )
+    ) {
+      return;
+    }
+  }
+
+  const id =
+    val('caseId') ||
+    crypto.randomUUID();
+
+  const c = {
+    id,
+
+    caseNumber:
+      Number(val('caseNumber')) ||
+      nextNo(),
+
+    date: val('caseDate'),
+    procedure: val('procedure'),
+    asa: val('asa'),
+    postopCare: val('postopCare'),
+
+    pca: val('pca'),
+    itDiamorph:
+      val('itDiamorph'),
+    rsc: val('rsc'),
+
+    postopPrescriptions:
+      val('postopPrescriptions'),
+
+    poPara: num('poPara'),
+    ivPara: num('ivPara'),
+    codeine: num('codeine'),
+    ibuprofen: num('ibuprofen'),
+    oralOpiates:
+      num('oralOpiates'),
+
+    pcaStartTime:
+      combineDT(
+        'pcaStartDate',
+        'pcaStartClock'
+      ),
+
+    rscStartTime:
+      combineDT(
+        'rscStartDate',
+        'rscStartClock'
+      ),
+
+    itTime:
+      combineDT(
+        'itDate',
+        'itClock'
+      ),
+
+    recoveryTime:
+      combineDT(
+        'recoveryDate',
+        'recoveryClock'
+      ),
+
+    dischargeTime:
+      combineDT(
+        'dischargeDate',
+        'dischargeClock'
+      ),
+
+    observations:
+      monitoringSelected()
+        ? collectObs()
+        : [],
+
+    updatedAt:
+      new Date().toISOString()
+  };
+
+  // Save locally first.
+  const i =
+    cases.findIndex(
+      x => x.id === id
+    );
+
+  if (i >= 0) {
+    cases[i] = c;
+  } else {
+    cases.push(c);
+  }
+
+  saveLocal();
+
+  // Then synchronise to Supabase.
+  const synced =
+    await saveCaseToSupabase(c);
+
+  if (synced) {
+    await loadFromSupabase();
+  }
+
+  showView('home');
+};
+const c=cases.find(x=>x.id===id);if(!c)return;resetForm();$('#caseId').value=c.id;$('#caseNumber').value=(Number(c.caseNumber)>=1?c.caseNumber:nextNo());$('#caseDate').value=c.date||AUDIT_MONDAY;$('#procedure').value=c.procedure||'';$('#asa').value=c.asa||'';$('#postopCare').value=c.postopCare||'';$('#pca').value=c.pca||'No';$('#itDiamorph').value=c.itDiamorph||'No';$('#rsc').value=c.rsc||'No';$('#postopPrescriptions').value=c.postopPrescriptions||'Protocol';['poPara','ivPara','codeine','ibuprofen','oralOpiates'].forEach(k=>$('#'+k).value=c[k]??0);splitDT(c.pcaStartTime,'pcaStartDate','pcaStartClock');splitDT(c.rscStartTime,'rscStartDate','rscStartClock');splitDT(c.itTime,'itDate','itClock');splitDT(c.recoveryTime,'recoveryDate','recoveryClock');splitDT(c.dischargeTime,'dischargeDate','dischargeClock');(c.observations||[]).forEach(addObservation);$('#deleteCase').classList.remove('hidden');updateConditional();$('#scheduleHint').textContent=c.observations?.length?`${c.observations.length} required observation time(s).`:'';showView('form')}
 $('#deleteCase').onclick=()=>{const id=val('caseId');if(!id){alert('Unable to identify this case. Please return to Cases and reopen it.');return}if(!confirm('Delete this case?'))return;cases=cases.filter(c=>c.id!==id);saveLocal();resetForm();showView('home')};
 function renderCases(){$('#caseCount').textContent=cases.length;$('#obsCount').textContent=cases.reduce((a,c)=>a+(c.observations?.length||0),0);$('#incompleteCount').textContent=cases.filter(c=>!c.procedure||!c.asa).length;$('#auditWeek').textContent=`Audit week: ${new Date(AUDIT_MONDAY+'T12:00:00').toLocaleDateString([], {day:'2-digit',month:'short',year:'numeric'})} – ${new Date(datePlus(AUDIT_MONDAY,6)+'T12:00:00').toLocaleDateString([], {day:'2-digit',month:'short',year:'numeric'})}`;const area=$('#caseList');area.innerHTML='';if(!cases.length){area.innerHTML='<div class="empty">No cases yet.<br>Tap “New patient” to start.</div>';return}cases.slice().sort((a,b)=>(Number(b.caseNumber)||0)-(Number(a.caseNumber)||0)).forEach(c=>{const d=document.createElement('div');d.className='case-item';d.innerHTML=`<div><b>Case ${Number(c.caseNumber)>=1?c.caseNumber:'—'}</b><small>${c.date||''} · ${esc(c.procedure||'No procedure')}<br>${c.observations?.length||0} scheduled observation(s)</small></div><button type="button">Edit</button>`;d.querySelector('button').onclick=()=>editCase(c.id);area.appendChild(d)})}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
@@ -100,3 +214,49 @@ if ('serviceWorker' in navigator) {
 }
 
 loadFromSupabase();
+
+async function saveCaseToSupabase(c) {
+
+  const row = {
+    id: c.id,
+    case_number: c.caseNumber,
+    case_date: c.date,
+
+    procedure: c.procedure || null,
+    asa: c.asa || null,
+    postop_destination:
+      c.postopCare || null,
+
+    pca: c.pca === 'Yes',
+    rsc: c.rsc === 'Yes',
+    it_diamorphine:
+      c.itDiamorph === 'Yes',
+
+    case_data: c,
+
+    updated_at:
+      new Date().toISOString()
+  };
+
+  const { error } =
+    await supabaseClient
+      .from('gynae_audit_cases')
+      .upsert(row, {
+        onConflict: 'id'
+      });
+
+  if (error) {
+    console.error(
+      'Supabase save error:',
+      error
+    );
+
+    alert(
+      'The case was saved on this device, but could not sync to Supabase.'
+    );
+
+    return false;
+  }
+
+  return true;
+}
