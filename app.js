@@ -22,6 +22,49 @@ function datePlus(dateStr,days){const d=new Date(dateStr+'T12:00:00');d.setDate(
 function combineDT(dateId,timeId){const d=$('#'+dateId)?.value,t=$('#'+timeId)?.value;return d&&t?`${d}T${t}`:''}
 function splitDT(v,dateId,timeId){const d=$('#'+dateId),t=$('#'+timeId);if(!d||!t)return;if(v&&v.includes('T')){const [dd,tt]=v.split('T');d.value=dd;t.value=tt.slice(0,5)}else{d.value=AUDIT_MONDAY;t.value='09:00'}}
 function saveLocal(){localStorage.setItem(STORE,JSON.stringify(cases));renderCases()}
+async function loadFromSupabase() {
+
+  const { data, error } =
+    await supabaseClient
+      .from('gynae_audit_cases')
+      .select('*')
+      .order('case_number', {
+        ascending: true
+      });
+
+  if (error) {
+    console.error(
+      'Supabase load error:',
+      error
+    );
+
+    // Keep using the local copy if
+    // Supabase is temporarily unavailable.
+    renderCases();
+    return;
+  }
+
+  cases = (data || []).map(row => {
+
+    const c = row.case_data || {};
+
+    return {
+      ...c,
+      id: row.id,
+      caseNumber: row.case_number,
+      date: row.case_date
+    };
+
+  });
+
+  // Also keep a local backup.
+  localStorage.setItem(
+    STORE,
+    JSON.stringify(cases)
+  );
+
+  renderCases();
+}
 function showView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));scrollTo(0,0)}
 $$('.tab').forEach(b=>b.onclick=()=>showView(b.dataset.view));$('#newCaseBtn').onclick=()=>newCase();
 function nextNo(){const nums=cases.map(c=>Number(c.caseNumber)).filter(n=>Number.isFinite(n)&&n>=1);return nums.length?Math.max(...nums)+1:1}
@@ -50,4 +93,10 @@ function exportRows(){const rows=[headers];cases.slice().sort((a,b)=>(Number(a.c
 $('#exportExcel').onclick=()=>{const ws=XLSX.utils.aoa_to_sheet(exportRows());ws['!cols']=headers.map((h,i)=>({wch:i===2?45:Math.max(12,Math.min(24,h.length+2))}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Audit Data');XLSX.writeFile(wb,`Gynae_Audit_${new Date().toISOString().slice(0,10)}.xlsx`)};
 $('#exportBackup').onclick=()=>{const blob=new Blob([JSON.stringify({version:3,auditMonday:AUDIT_MONDAY,exportedAt:new Date().toISOString(),cases},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Gynae_Audit_Backup_${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 $('#importBackup').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text()),incoming=Array.isArray(j)?j:j.cases;if(!Array.isArray(incoming))throw Error();if(!confirm(`Import ${incoming.length} case(s)? This will replace the cases currently on this device.`))return;cases=incoming;if(j.auditMonday)localStorage.setItem(WEEK_KEY,j.auditMonday);saveLocal();alert('Backup imported successfully.');showView('home')}catch{alert('This is not a valid audit backup file.')}finally{e.target.value=''}};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.error);renderCases();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('./sw.js')
+    .catch(console.error);
+}
+
+loadFromSupabase();
