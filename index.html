@@ -1,18 +1,16 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport"
-        content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0f766e">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
 
-  <title>Gynae Analgesia Audit</title>
+<title>Gynae Analgesia Audit</title>
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -20,73 +18,59 @@
 <div class="app">
 
 <header>
-  <div>
-    <h1>Gynae Analgesia Audit</h1>
-    <p>Non-identifiable patient-by-patient data collection</p>
-  </div>
+<div>
+<h1>Gynae Analgesia Audit</h1>
+<p>Non-identifiable patient-by-patient data collection</p>
+</div>
 
-  <span class="badge">Local</span>
+<span class="badge">Local</span>
 </header>
 
 
 <nav>
-  <button class="tab active" data-view="home">
-    Cases
-  </button>
-
-  <button class="tab" data-view="form">
-    New Case
-  </button>
-
-  <button class="tab" data-view="export">
-    Export
-  </button>
+<button class="tab active" data-view="home">Cases</button>
+<button class="tab" data-view="form">New Case</button>
+<button class="tab" data-view="export">Export</button>
 </nav>
 
 
 <main>
 
-
-<!-- ========================= -->
-<!-- CASE LIST -->
-<!-- ========================= -->
+<!-- CASES -->
 
 <section id="home" class="view active">
 
-  <div class="stats">
+<div class="stats">
 
-    <div>
-      <b id="caseCount">0</b>
-      <span>Cases</span>
-    </div>
+<div>
+<b id="caseCount">0</b>
+<span>Cases</span>
+</div>
 
-    <div>
-      <b id="obsCount">0</b>
-      <span>Scheduled obs</span>
-    </div>
+<div>
+<b id="obsCount">0</b>
+<span>Scheduled obs</span>
+</div>
 
-    <div>
-      <b id="incompleteCount">0</b>
-      <span>Incomplete</span>
-    </div>
+<div>
+<b id="incompleteCount">0</b>
+<span>Incomplete</span>
+</div>
 
-  </div>
+</div>
 
-  <p class="audit-week" id="auditWeek"></p>
+<p class="audit-week" id="auditWeek"></p>
 
-  <button class="primary big" id="newCaseBtn">
-    + New patient
-  </button>
+<button class="primary big" id="newCaseBtn">
++ New patient
+</button>
 
-  <div id="caseList"></div>
+<div id="caseList"></div>
 
 </section>
 
 
-
-<!-- ========================= -->
-<!-- CASE FORM -->
-<!-- ========================= -->
+<!-- FORM -->
 
 <section id="form" class="view">
 
@@ -99,90 +83,79 @@
 
 <div class="card">
 
-  <h2>Case details</h2>
+<h2>Case details</h2>
 
-  <div class="grid">
+<div class="grid">
 
-    <label>
-      Case number
-      <input id="caseNumber"
-             type="number"
-             readonly>
-    </label>
+<label>
+Case number
+<input id="caseNumber" type="number" readonly>
+</label>
 
-    <label>
-      Date
-      <input id="caseDate"
-             type="date"
-             required>
-    </label>
-
-  </div>
-
-
-  <label>
-    Procedure
-    <textarea id="procedure"
-              rows="2"
-              required></textarea>
-  </label>
-
-
-  <div class="grid">
-
-    <label>
-      ASA
-
-      <select id="asa" required>
-        <option value="">Select</option>
-        <option>1</option>
-        <option>2</option>
-        <option>3</option>
-        <option>4</option>
-      </select>
-
-    </label>
-
-
-    <label>
-      Post-op care
-
-      <select id="postopCare">
-        <option value="">Select</option>
-        <option>Home</option>
-        <option>Ward</option>
-        <option>HDU</option>
-        <option>Other</option>
-      </select>
-
-    </label>
-
-  </div>
-
-
-  <div class="grid">
-
-    <label>
-      Discharge date
-      <input id="dischargeDate"
-             type="date">
-    </label>
-
-    <label>
-      Discharge time
-      <input id="dischargeClock"
-             type="time">
-    </label>
-
-  </div>
+<label>
+Date
+<input id="caseDate" type="date" required>
+</label>
 
 </div>
 
 
+<label>
+Procedure
+<textarea id="procedure" rows="2" required></textarea>
+</label>
 
-<!-- ========================= -->
+
+<div class="grid">
+
+<label>
+ASA
+
+<select id="asa" required>
+<option value="">Select</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+</select>
+
+</label>
+
+
+<label>
+Post-op care
+
+<select id="postopCare">
+<option value="">Select</option>
+<option>Home</option>
+<option>Ward</option>
+<option>HDU</option>
+<option>Other</option>
+</select>
+
+</label>
+
+</div>
+
+
+<div class="grid">
+
+<label>
+Discharge date
+<input id="dischargeDate" type="date">
+</label>
+
+<label>
+Discharge time
+<input id="dischargeClock" type="time">
+</label>
+
+</div>
+
+</div>
+
+
 <!-- ANALGESIA -->
-<!-- ========================= -->
 
 <div class="card">
 
@@ -191,662 +164,578 @@
 
 <div class="yn-grid">
 
-  <label>
-    PCA
+<label>
+PCA
 
-    <select id="pca">
-      <option>No</option>
-      <option>Yes</option>
-    </select>
-
-  </label>
-
-
-  <label>
-    IT Diamorphine
-
-    <select id="itDiamorph">
-      <option>No</option>
-      <option>Yes</option>
-    </select>
-
-  </label>
-
-
-  <label>
-    RSC
-
-    <select id="rsc">
-      <option>No</option>
-      <option>Yes</option>
-    </select>
-
-  </label>
-
-</div>
-
-
-
-<!-- INTERVENTION TIMES -->
-
-<div id="timingFields">
-
-
-<div id="pcaTimeWrap"
-     class="hidden timing-block">
-
-  <b>PCA start</b>
-
-  <div class="grid">
-
-    <label>
-      Date
-      <input id="pcaStartDate"
-             type="date">
-    </label>
-
-    <label>
-      Time
-      <input id="pcaStartClock"
-             type="time">
-    </label>
-
-  </div>
-
-</div>
-
-
-
-<div id="rscTimeWrap"
-     class="hidden timing-block">
-
-  <b>RSC start</b>
-
-  <div class="grid">
-
-    <label>
-      Date
-      <input id="rscStartDate"
-             type="date">
-    </label>
-
-    <label>
-      Time
-      <input id="rscStartClock"
-             type="time">
-    </label>
-
-  </div>
-
-</div>
-
-
-
-<div id="itTimeWrap"
-     class="hidden timing-block">
-
-  <b>IT diamorphine administration</b>
-
-  <div class="grid">
-
-    <label>
-      Date
-      <input id="itDate"
-             type="date">
-    </label>
-
-    <label>
-      Time
-      <input id="itClock"
-             type="time">
-    </label>
-
-  </div>
-
-</div>
-
-
-
-<div id="recoveryTimeWrap"
-     class="hidden timing-block">
-
-  <b>Arrival in recovery</b>
-
-  <div class="grid">
-
-    <label>
-      Date
-      <input id="recoveryDate"
-             type="date">
-    </label>
-
-    <label>
-      Time
-      <input id="recoveryClock"
-             type="time">
-    </label>
-
-  </div>
-
-</div>
-
-
-</div>
-
+<select id="pca">
+<option>No</option>
+<option>Yes</option>
+</select>
+</label>
 
 
 <label>
+IT Diamorphine
 
-  Post-op prescriptions
-
-  <select id="postopPrescriptions">
-    <option>Protocol</option>
-    <option>Non-protocol</option>
-    <option>Other</option>
-  </select>
-
+<select id="itDiamorph">
+<option>No</option>
+<option>Yes</option>
+</select>
 </label>
 
+
+<label>
+RSC
+
+<select id="rsc">
+<option>No</option>
+<option>Yes</option>
+</select>
+</label>
+
+</div>
+
+
+<!-- PCA DETAILS -->
+
+<div id="pcaTimeWrap" class="hidden timing-block">
+
+<b>PCA details</b>
+
+<div class="grid">
+
+<label>
+PCA drug
+
+<select id="pcaDrug">
+<option value="">Select</option>
+<option>Morphine</option>
+<option>Oxycodone</option>
+</select>
+</label>
+
+<label>
+Start date
+<input id="pcaStartDate" type="date">
+</label>
+
+<label>
+Start time
+<input id="pcaStartClock" type="time">
+</label>
+
+</div>
+
+</div>
+
+
+<!-- RSC DETAILS -->
+
+<div id="rscTimeWrap" class="hidden timing-block">
+
+<b>RSC start</b>
+
+<div class="grid">
+
+<label>
+Date
+<input id="rscStartDate" type="date">
+</label>
+
+<label>
+Time
+<input id="rscStartClock" type="time">
+</label>
+
+</div>
+
+</div>
+
+
+<!-- IT DIAMORPHINE -->
+
+<div id="itTimeWrap" class="hidden timing-block">
+
+<b>IT diamorphine administration</b>
+
+<div class="grid">
+
+<label>
+Date
+<input id="itDate" type="date">
+</label>
+
+<label>
+Time
+<input id="itClock" type="time">
+</label>
+
+</div>
+
+</div>
+
+
+<!-- RECOVERY -->
+
+<div id="recoveryTimeWrap" class="hidden timing-block">
+
+<b>Arrival in recovery</b>
+
+<div class="grid">
+
+<label>
+Date
+<input id="recoveryDate" type="date">
+</label>
+
+<label>
+Time
+<input id="recoveryClock" type="time">
+</label>
+
+</div>
+
+</div>
+
+
+<!-- POSTOP PRESCRIPTIONS -->
+
+<label>
+Post-op prescriptions
+
+<select id="postopPrescriptions">
+<option>Protocol</option>
+<option>Non-protocol</option>
+<option>Other</option>
+</select>
+</label>
+
+
+<h3>Regular / PRN analgesia</h3>
 
 
 <div class="grid">
 
-
 <label>
-  PO Paracetamol doses
-
-  <input id="poPara"
-         type="number"
-         min="0"
-         value="0">
+PO Paracetamol doses
+<input id="poPara" type="number" min="0" value="0">
 </label>
 
 
 <label>
-  IV Paracetamol doses
-
-  <input id="ivPara"
-         type="number"
-         min="0"
-         value="0">
+IV Paracetamol doses
+<input id="ivPara" type="number" min="0" value="0">
 </label>
 
 
 <label>
-  Codeine doses
-
-  <input id="codeine"
-         type="number"
-         min="0"
-         value="0">
-</label>
-
-
-<!-- IBUPROFEN -->
-
-<label>
-
-  Ibuprofen doses
-
-  <input id="ibuprofen"
-         type="number"
-         min="0"
-         value="0">
-
-  <span style="
-    display:flex;
-    align-items:center;
-    gap:6px;
-    margin-top:6px;
-    font-size:0.85em;
-  ">
-
-    <input id="ibuprofenNP"
-           type="checkbox"
-           style="width:auto;">
-
-    Not prescribed
-
-  </span>
-
+Codeine 30 mg doses
+<input id="codeine30" type="number" min="0" value="0">
 </label>
 
 
 <label>
-  Oral opiates
-
-  <input id="oralOpiates"
-         type="number"
-         min="0"
-         value="0">
+Codeine 60 mg doses
+<input id="codeine60" type="number" min="0" value="0">
 </label>
 
+
+<label>
+
+Ibuprofen doses
+
+<input id="ibuprofen"
+       type="number"
+       min="0"
+       value="0">
+
+<span style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:0.85em;">
+
+<input id="ibuprofenNP"
+       type="checkbox"
+       style="width:auto;">
+
+Not prescribed
+
+</span>
+
+</label>
+
+</div>
+
+
+<!-- ORAL OPIATES -->
+
+<h3>Oral opiates</h3>
+
+<label>
+Opiate
+
+<select id="oralOpiateDrug">
+<option value="">None</option>
+<option>Morphine</option>
+<option>Oxycodone</option>
+</select>
+
+</label>
+
+
+<div class="grid">
+
+<label>
+2.5 mg doses
+<input id="opiate2_5" type="number" min="0" value="0">
+</label>
+
+
+<label>
+5 mg doses
+<input id="opiate5" type="number" min="0" value="0">
+</label>
+
+
+<label>
+10 mg doses
+<input id="opiate10" type="number" min="0" value="0">
+</label>
+
+
+<label>
+20 mg doses
+<input id="opiate20" type="number" min="0" value="0">
+</label>
 
 </div>
 
 </div>
 
 
-
-<!-- ========================= -->
 <!-- OBSERVATIONS -->
-<!-- ========================= -->
 
-<div id="obsCard"
-     class="card hidden">
+<div id="obsCard" class="card hidden">
 
-  <div class="section-head">
+<div class="section-head">
 
-    <div>
+<div>
+<h2>Required observations</h2>
+<p class="hint" id="scheduleHint"></p>
+</div>
 
-      <h2>Required observations</h2>
+<button type="button"
+        class="secondary"
+        id="generateObs">
 
-      <p class="hint"
-         id="scheduleHint"></p>
+Generate / refresh
 
-    </div>
+</button>
 
+</div>
 
-    <button type="button"
-            class="secondary"
-            id="generateObs">
-
-      Generate / refresh
-
-    </button>
-
-  </div>
-
-
-  <div id="observations"></div>
+<div id="observations"></div>
 
 </div>
 
 
+<div id="noObsMessage" class="card">
 
-<div id="noObsMessage"
-     class="card">
+<b>No protocol observations required.</b>
 
-  <b>
-    No protocol observations required.
-  </b>
-
-  <p class="hint">
-    Select PCA, RSC or IT diamorphine if applicable.
-  </p>
+<p class="hint">
+Select PCA, RSC or IT diamorphine if applicable.
+</p>
 
 </div>
-
 
 
 <div class="actions">
 
-  <button type="button"
-          class="danger hidden"
-          id="deleteCase">
+<button type="button"
+        class="danger hidden"
+        id="deleteCase">
+Delete
+</button>
 
-    Delete
-
-  </button>
-
-
-  <button type="submit"
-          class="primary">
-
-    Save patient
-
-  </button>
+<button type="submit"
+        class="primary">
+Save patient
+</button>
 
 </div>
-
 
 </form>
 
 </section>
 
 
-
-<!-- ========================= -->
 <!-- EXPORT -->
-<!-- ========================= -->
 
-<section id="export"
-         class="view">
+<section id="export" class="view">
 
 <div class="card">
 
-  <h2>Export audit</h2>
+<h2>Export audit</h2>
 
-  <p>
-    Download the audit as Excel, or move the editable audit
-    between phone and laptop using a backup file.
-  </p>
+<p>
+Download the audit as Excel, or move the editable audit between phone and laptop using a backup file.
+</p>
 
+<button class="primary big" id="exportExcel">
+Download Excel
+</button>
 
-  <button class="primary big"
-          id="exportExcel">
+<button class="secondary big" id="exportBackup">
+Download backup
+</button>
 
-    Download Excel
+<label class="secondary big file-button">
 
-  </button>
+Import backup
 
+<input id="importBackup"
+       type="file"
+       accept="application/json,.json"
+       hidden>
 
-  <button class="secondary big"
-          id="exportBackup">
+</label>
 
-    Download backup
-
-  </button>
-
-
-  <label class="secondary big file-button">
-
-    Import backup
-
-    <input id="importBackup"
-           type="file"
-           accept="application/json,.json"
-           hidden>
-
-  </label>
-
-
-  <p class="hint">
-    Import replaces the cases currently stored on this device
-    after confirmation.
-  </p>
+<p class="hint">
+Import replaces the cases currently stored on this device after confirmation.
+</p>
 
 </div>
 
 </section>
-
 
 </main>
 
 </div>
 
 
-
-<!-- ========================= -->
 <!-- OBSERVATION TEMPLATE -->
-<!-- ========================= -->
 
 <template id="obsTemplate">
 
 <div class="obs card-inner">
 
-
 <div class="section-head">
 
-  <div>
+<div>
 
-    <b>
-      Required:
-      <span data-k-display="requiredAt"></span>
-    </b>
+<b>
+Required:
+<span data-k-display="requiredAt"></span>
+</b>
 
-    <small class="reason"
-           data-k-display="reason"></small>
+<small class="reason"
+       data-k-display="reason">
+</small>
 
-  </div>
+</div>
 
-  <span class="status-pill">
-    Due
-  </span>
+<span class="status-pill">Due</span>
 
 </div>
 
 
-<input data-k="requiredAt"
-       type="hidden">
-
-<input data-k="reason"
-       type="hidden">
+<input data-k="requiredAt" type="hidden">
+<input data-k="reason" type="hidden">
 
 
 <div class="grid">
 
-
 <label>
+Observation done?
 
-  Observation done?
-
-  <select data-k="observationPostop">
-    <option value="">—</option>
-    <option>Y</option>
-    <option>N</option>
-  </select>
-
+<select data-k="observationPostop">
+<option value="">—</option>
+<option>Y</option>
+<option>N</option>
+</select>
 </label>
 
 
 <label>
-
-  Actual observation date
-
-  <input data-k="actualDate"
-         type="date">
-
+Actual observation date
+<input data-k="actualDate" type="date">
 </label>
 
 
 <label>
-
-  Actual observation time
-
-  <input data-k="actualClock"
-         type="time">
-
+Actual observation time
+<input data-k="actualClock" type="time">
 </label>
 
 
 <label>
-
-  Pain score
-
-  <input data-k="painScore"
-         type="number"
-         min="0"
-         max="10">
-
+Pain score
+<input data-k="painScore"
+       type="number"
+       min="0"
+       max="10">
 </label>
 
 
 <label>
+N & V score
 
-  N & V score
-
-  <select data-k="nvScore">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-    <option>0</option>
-    <option>1</option>
-    <option>2</option>
-    <option>3</option>
-  </select>
-
+<select data-k="nvScore">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+<option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+</select>
 </label>
 
 
 <label>
+Sedation score
 
-  Sedation score
-
-  <select data-k="sedationScore">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-    <option>0</option>
-    <option>1</option>
-    <option>2</option>
-    <option>3</option>
-  </select>
-
+<select data-k="sedationScore">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+<option>0</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+</select>
 </label>
 
 
 <label>
+Functional activity
 
-  Functional activity
-
-  <select data-k="functionalActivity">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-  </select>
-
+<select data-k="functionalActivity">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+</select>
 </label>
 
 
 <label>
+Itching
 
-  Itching
-
-  <select data-k="itching">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-  </select>
-
+<select data-k="itching">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+</select>
 </label>
 
 
 <label>
+Hallucination
 
-  Hallucination
-
-  <select data-k="hallucination">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-  </select>
-
+<select data-k="hallucination">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+</select>
 </label>
 
 
 <label class="pcaField">
 
-  Total PCA administered
+Total PCA administered
 
-  <input data-k="totalPca"
-         type="number"
-         min="0"
-         step="any">
+<input data-k="totalPca"
+       type="number"
+       min="0"
+       step="any">
 
 </label>
 
-
 </div>
-
 
 
 <div class="rscFields">
 
 <h3>RSC assessment</h3>
 
-
 <div class="grid">
 
-
 <label>
-
-  LA bolus
-
-  <input data-k="laBolus"
-         type="number"
-         min="0"
-         step="any">
-
+LA bolus
+<input data-k="laBolus"
+       type="number"
+       min="0"
+       step="any">
 </label>
 
 
 <label>
-
-  RSC rate
-
-  <input data-k="rscRate"
-         type="number"
-         min="0"
-         step="any">
-
+RSC rate
+<input data-k="rscRate"
+       type="number"
+       min="0"
+       step="any">
 </label>
 
 
 <label>
+LA toxicity score
 
-  LA toxicity score
-
-  <select data-k="laToxicity">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-  </select>
-
+<select data-k="laToxicity">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+</select>
 </label>
 
 
 <label>
+LA site assessment
 
-  LA site assessment
-
-  <select data-k="laSite">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-  </select>
-
+<select data-k="laSite">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+</select>
 </label>
 
 
 <label>
+Motor power
 
-  Motor power
-
-  <select data-k="motorPower">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-  </select>
-
+<select data-k="motorPower">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+</select>
 </label>
 
 
 <label>
+Sensory score
 
-  Sensory score
-
-  <select data-k="sensoryScore">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-  </select>
-
+<select data-k="sensoryScore">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+</select>
 </label>
 
 
 <label>
-
-  Dermatome height
-
-  <input data-k="dermatomeHeight"
-         type="text">
-
+Dermatome height
+<input data-k="dermatomeHeight"
+       type="text">
 </label>
 
 
 <label>
+SLT
 
-  SLT
-
-  <select data-k="slt">
-    <option value="">—</option>
-    <option>N</option>
-    <option>Y</option>
-  </select>
-
+<select data-k="slt">
+<option value="">—</option>
+<option>N</option>
+<option>Y</option>
+</select>
 </label>
-
 
 </div>
 
@@ -858,9 +747,7 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script src="app.js"></script>
-
 
 </body>
 </html>
