@@ -25,11 +25,17 @@ let cases = JSON.parse(
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 
-const z = n => String(n).padStart(2, '0');
+const z = n =>
+  String(n).padStart(2, '0');
 
 
 function isoDate(d) {
-  return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
+
+  return (
+    `${d.getFullYear()}-` +
+    `${z(d.getMonth() + 1)}-` +
+    `${z(d.getDate())}`
+  );
 }
 
 
@@ -38,11 +44,18 @@ function chooseAuditMonday() {
   let saved =
     localStorage.getItem(WEEK_KEY);
 
-  if (saved) return saved;
+  if (saved) {
+    return saved;
+  }
 
   const today = new Date();
 
-  today.setHours(12, 0, 0, 0);
+  today.setHours(
+    12,
+    0,
+    0,
+    0
+  );
 
   const earliest =
     new Date(today);
@@ -63,6 +76,7 @@ function chooseAuditMonday() {
     d.getDate() + shift
   );
 
+
   while (d <= today) {
 
     mondays.push(
@@ -74,6 +88,7 @@ function chooseAuditMonday() {
     );
   }
 
+
   saved =
     mondays[
       Math.floor(
@@ -82,6 +97,7 @@ function chooseAuditMonday() {
       )
     ] ||
     isoDate(today);
+
 
   localStorage.setItem(
     WEEK_KEY,
@@ -133,7 +149,7 @@ function combineDT(
 
 
 function splitDT(
-  v,
+  value,
   dateId,
   timeId
 ) {
@@ -144,20 +160,25 @@ function splitDT(
   const t =
     $('#' + timeId);
 
-  if (!d || !t) return;
+  if (!d || !t) {
+    return;
+  }
+
 
   if (
-    v &&
-    v.includes('T')
+    value &&
+    value.includes('T')
   ) {
 
-    const [dd, tt] =
-      v.split('T');
+    const parts =
+      value.split('T');
 
-    d.value = dd;
+    d.value =
+      parts[0];
 
     t.value =
-      tt.slice(0, 5);
+      parts[1]
+        .slice(0, 5);
 
   } else {
 
@@ -194,6 +215,7 @@ async function loadFromSupabase() {
         }
       );
 
+
   if (error) {
 
     console.error(
@@ -210,23 +232,29 @@ async function loadFromSupabase() {
     return;
   }
 
+
   cases =
-    (data || []).map(
-      row => {
+    (data || [])
+      .map(row => {
 
         const c =
           row.case_data || {};
 
         return {
+
           ...c,
-          id: row.id,
+
+          id:
+            row.id,
+
           caseNumber:
             row.case_number,
+
           date:
             row.case_date
         };
-      }
-    );
+      });
+
 
   localStorage.setItem(
     STORE,
@@ -241,7 +269,8 @@ async function saveCaseToSupabase(c) {
 
   const row = {
 
-    id: c.id,
+    id:
+      c.id,
 
     case_number:
       c.caseNumber,
@@ -267,10 +296,12 @@ async function saveCaseToSupabase(c) {
     it_diamorphine:
       c.itDiamorph === 'Yes',
 
-    case_data: c,
+    case_data:
+      c,
 
     updated_at:
-      new Date().toISOString()
+      new Date()
+        .toISOString()
   };
 
 
@@ -305,40 +336,49 @@ async function saveCaseToSupabase(c) {
     return false;
   }
 
+
   return true;
 }
 
 
 function showView(id) {
 
-  $$('.view').forEach(
-    v =>
+  $$('.view')
+    .forEach(v => {
+
       v.classList.toggle(
         'active',
         v.id === id
-      )
-  );
+      );
+    });
 
-  $$('.tab').forEach(
-    b =>
+
+  $$('.tab')
+    .forEach(b => {
+
       b.classList.toggle(
         'active',
         b.dataset.view === id
-      )
-  );
+      );
+    });
 
-  scrollTo(0, 0);
+
+  window.scrollTo(
+    0,
+    0
+  );
 }
 
 
-$$('.tab').forEach(
-  b =>
+$$('.tab')
+  .forEach(b => {
+
     b.onclick =
       () =>
         showView(
           b.dataset.view
-        )
-);
+        );
+  });
 
 
 $('#newCaseBtn').onclick =
@@ -360,6 +400,7 @@ function nextNo() {
           Number.isFinite(n) &&
           n >= 1
       );
+
 
   return nums.length
     ? Math.max(...nums) + 1
@@ -385,7 +426,10 @@ function parseDT(v) {
 }
 
 
-function addMin(d, m) {
+function addMin(
+  d,
+  m
+) {
 
   return new Date(
     d.getTime() +
@@ -396,10 +440,14 @@ function addMin(d, m) {
 
 function fmt(v) {
 
-  if (!v) return '';
+  if (!v) {
+    return '';
+  }
+
 
   const d =
     parseDT(v);
+
 
   return d.toLocaleString(
     [],
@@ -423,16 +471,14 @@ function setDefaultDateTimes() {
     'rscStartDate',
     'itDate',
     'recoveryDate'
-  ].forEach(
-    id => {
+  ].forEach(id => {
 
-      if ($('#' + id)) {
+    if ($('#' + id)) {
 
-        $('#' + id).value =
-          AUDIT_MONDAY;
-      }
+      $('#' + id).value =
+        AUDIT_MONDAY;
     }
-  );
+  });
 
 
   [
@@ -441,27 +487,31 @@ function setDefaultDateTimes() {
     'rscStartClock',
     'itClock',
     'recoveryClock'
-  ].forEach(
-    id => {
+  ].forEach(id => {
 
-      if ($('#' + id)) {
+    if ($('#' + id)) {
 
-        $('#' + id).value =
-          '09:00';
-      }
+      $('#' + id).value =
+        '09:00';
     }
-  );
+  });
 }
 
 
 function resetForm() {
 
-  $('#caseForm').reset();
+  $('#caseForm')
+    .reset();
 
-  $('#caseId').value = '';
 
-  $('#observations').innerHTML =
+  $('#caseId').value =
     '';
+
+
+  $('#observations')
+    .innerHTML =
+      '';
+
 
   $('#deleteCase')
     .classList
@@ -471,19 +521,30 @@ function resetForm() {
   [
     'poPara',
     'ivPara',
-    'codeine',
+    'codeine30',
+    'codeine60',
     'ibuprofen',
-    'oralOpiates'
-  ].forEach(
-    id =>
-      $('#' + id).value = 0
-  );
+    'opiate2_5',
+    'opiate5',
+    'opiate10',
+    'opiate20'
+  ].forEach(id => {
+
+    $('#' + id).value =
+      0;
+  });
 
 
-  // Ibuprofen "Not prescribed"
-  // is reset for every new case.
   $('#ibuprofenNP').checked =
     false;
+
+
+  $('#pcaDrug').value =
+    '';
+
+
+  $('#oralOpiateDrug').value =
+    '';
 
 
   setDefaultDateTimes();
@@ -504,6 +565,7 @@ function newCase() {
 
 
 function val(id) {
+
   return $('#' + id).value;
 }
 
@@ -512,7 +574,9 @@ function num(id) {
 
   return val(id) === ''
     ? ''
-    : Number(val(id));
+    : Number(
+        val(id)
+      );
 }
 
 
@@ -587,29 +651,30 @@ function updateConditional() {
 
 
   $$('.pcaField')
-    .forEach(
-      x =>
-        x.classList.toggle(
-          'hidden',
-          !p
-        )
-    );
+    .forEach(x => {
+
+      x.classList.toggle(
+        'hidden',
+        !p
+      );
+    });
 
 
   $$('.rscFields')
-    .forEach(
-      x =>
-        x.classList.toggle(
-          'hidden',
-          !r
-        )
-    );
+    .forEach(x => {
+
+      x.classList.toggle(
+        'hidden',
+        !r
+      );
+    });
 
 
   if (!(p || r || it)) {
 
     $('#observations')
-      .innerHTML = '';
+      .innerHTML =
+        '';
   }
 }
 
@@ -618,16 +683,16 @@ function updateConditional() {
   'pca',
   'rsc',
   'itDiamorph'
-].forEach(
-  id =>
-    $('#' + id).onchange =
-      () => {
+].forEach(id => {
 
-        updateConditional();
+  $('#' + id).onchange =
+    () => {
 
-        generateSchedule();
-      }
-);
+      updateConditional();
+
+      generateSchedule();
+    };
+});
 
 
 function protocolTimes(
@@ -638,7 +703,9 @@ function protocolTimes(
 
   const out = [];
 
-  if (!start) return out;
+  if (!start) {
+    return out;
+  }
 
 
   const limit =
@@ -661,24 +728,22 @@ function protocolTimes(
     30,
     45,
     60
-  ].forEach(
-    m => {
+  ].forEach(m => {
 
-      const t =
-        addMin(
-          start,
-          m
-        );
+    const t =
+      addMin(
+        start,
+        m
+      );
 
-      if (t <= limit) {
+    if (t <= limit) {
 
-        out.push({
-          t,
-          reason
-        });
-      }
+      out.push({
+        t,
+        reason
+      });
     }
-  );
+  });
 
 
   for (
@@ -745,7 +810,8 @@ function generateSchedule() {
   if (!monitoringSelected()) {
 
     $('#observations')
-      .innerHTML = '';
+      .innerHTML =
+        '';
 
     return;
   }
@@ -753,6 +819,7 @@ function generateSchedule() {
 
   const discharge =
     getDischarge();
+
 
   let entries = [];
 
@@ -807,6 +874,7 @@ function generateSchedule() {
         )
       );
 
+
     const rec =
       parseDT(
         combineDT(
@@ -834,42 +902,47 @@ function generateSchedule() {
     new Map();
 
 
-  entries.forEach(
-    x => {
+  entries.forEach(x => {
 
-      const k =
-        localDT(x.t);
+    const k =
+      localDT(
+        x.t
+      );
+
+
+    if (
+      merged.has(k)
+    ) {
+
+      const old =
+        merged.get(k);
+
 
       if (
-        merged.has(k)
+        !old.reason.includes(
+          x.reason
+        )
       ) {
 
-        const old =
-          merged.get(k);
-
-        if (
-          !old.reason.includes(
-            x.reason
-          )
-        ) {
-
-          old.reason +=
-            ' + ' +
-            x.reason;
-        }
-
-      } else {
-
-        merged.set(
-          k,
-          {
-            requiredAt: k,
-            reason: x.reason
-          }
-        );
+        old.reason +=
+          ' + ' +
+          x.reason;
       }
+
+    } else {
+
+      merged.set(
+        k,
+        {
+          requiredAt:
+            k,
+
+          reason:
+            x.reason
+        }
+      );
     }
-  );
+  });
 
 
   const old =
@@ -893,22 +966,27 @@ function generateSchedule() {
               b.requiredAt
             )
       )
-      .map(
-        x => ({
-          ...x,
-          ...(old.get(
+      .map(x => ({
+
+        ...x,
+
+        ...(
+          old.get(
             x.requiredAt
-          ) || {}),
-          requiredAt:
-            x.requiredAt,
-          reason:
-            x.reason
-        })
-      );
+          ) || {}
+        ),
+
+        requiredAt:
+          x.requiredAt,
+
+        reason:
+          x.reason
+      }));
 
 
   $('#observations')
-    .innerHTML = '';
+    .innerHTML =
+      '';
 
 
   schedule.forEach(
@@ -942,14 +1020,14 @@ $('#generateObs').onclick =
   'recoveryClock',
   'dischargeDate',
   'dischargeClock'
-].forEach(
-  id =>
-    $('#' + id)
-      .addEventListener(
-        'change',
-        generateSchedule
-      )
-);
+].forEach(id => {
+
+  $('#' + id)
+    .addEventListener(
+      'change',
+      generateSchedule
+    );
+});
 
 
 function addObservation(
@@ -983,7 +1061,9 @@ function addObservation(
   obs.querySelector(
     '[data-k-display="requiredAt"]'
   ).textContent =
-    fmt(data.requiredAt);
+    fmt(
+      data.requiredAt
+    );
 
 
   obs.querySelector(
@@ -994,39 +1074,40 @@ function addObservation(
 
   obs.querySelectorAll(
     '[data-k]'
-  ).forEach(
-    el => {
+  ).forEach(el => {
 
-      if (
-        [
-          'requiredAt',
-          'reason',
-          'actualDate',
-          'actualClock'
-        ].includes(
-          el.dataset.k
-        )
-      ) {
-        return;
-      }
+    if (
+      [
+        'requiredAt',
+        'reason',
+        'actualDate',
+        'actualClock'
+      ].includes(
+        el.dataset.k
+      )
+    ) {
 
-      if (
+      return;
+    }
+
+
+    if (
+      data[
+        el.dataset.k
+      ] !== undefined
+    ) {
+
+      el.value =
         data[
           el.dataset.k
-        ] !== undefined
-      ) {
-
-        el.value =
-          data[
-            el.dataset.k
-          ] ?? '';
-      }
+        ] ?? '';
     }
-  );
+  });
 
 
   let actualDate =
     data.actualDate || '';
+
 
   let actualClock =
     data.actualClock || '';
@@ -1041,7 +1122,8 @@ function addObservation(
       actualDate,
       actualClock
     ] =
-      data.actualTime.split('T');
+      data.actualTime
+        .split('T');
   }
 
 
@@ -1064,7 +1146,10 @@ function addObservation(
     (
       actualClock ||
       '09:00'
-    ).slice(0, 5);
+    ).slice(
+      0,
+      5
+    );
 
 
   const sel =
@@ -1072,15 +1157,18 @@ function addObservation(
       '[data-k="observationPostop"]'
     );
 
+
   const ad =
     obs.querySelector(
       '[data-k="actualDate"]'
     );
 
+
   const at =
     obs.querySelector(
       '[data-k="actualClock"]'
     );
+
 
   const pill =
     obs.querySelector(
@@ -1118,21 +1206,30 @@ function addObservation(
         data.requiredAt
       ) {
 
-        const [dd, tt] =
+        const parts =
           data.requiredAt
             .split('T');
 
-        ad.value = dd;
+
+        ad.value =
+          parts[0];
+
 
         at.value =
-          tt.slice(0, 5);
+          parts[1]
+            .slice(
+              0,
+              5
+            );
       }
+
 
       status();
     };
 
 
   status();
+
 
   $('#observations')
     .appendChild(node);
@@ -1142,32 +1239,31 @@ function addObservation(
 function collectObs() {
 
   return $$('#observations .obs')
-    .map(
-      o => {
+    .map(o => {
 
-        const x = {};
-
-        o.querySelectorAll(
-          '[data-k]'
-        ).forEach(
-          el =>
-            x[
-              el.dataset.k
-            ] =
-              el.value
-        );
+      const x = {};
 
 
-        x.actualTime =
-          x.actualDate &&
-          x.actualClock
-            ? `${x.actualDate}T${x.actualClock}`
-            : '';
+      o.querySelectorAll(
+        '[data-k]'
+      ).forEach(el => {
+
+        x[
+          el.dataset.k
+        ] =
+          el.value;
+      });
 
 
-        return x;
-      }
-    );
+      x.actualTime =
+        x.actualDate &&
+        x.actualClock
+          ? `${x.actualDate}T${x.actualClock}`
+          : '';
+
+
+      return x;
+    });
 }
 
 
@@ -1229,6 +1325,9 @@ $('#caseForm').onsubmit =
       pca:
         val('pca'),
 
+      pcaDrug:
+        val('pcaDrug'),
+
       itDiamorph:
         val('itDiamorph'),
 
@@ -1246,20 +1345,35 @@ $('#caseForm').onsubmit =
       ivPara:
         num('ivPara'),
 
-      codeine:
-        num('codeine'),
+      codeine30:
+        num('codeine30'),
+
+      codeine60:
+        num('codeine60'),
 
       ibuprofen:
         num('ibuprofen'),
 
-      // NEW:
-      // stores whether ibuprofen
-      // was not prescribed.
       ibuprofenNP:
-        $('#ibuprofenNP').checked,
+        $('#ibuprofenNP')
+          .checked,
 
-      oralOpiates:
-        num('oralOpiates'),
+      oralOpiateDrug:
+        val(
+          'oralOpiateDrug'
+        ),
+
+      opiate2_5:
+        num('opiate2_5'),
+
+      opiate5:
+        num('opiate5'),
+
+      opiate10:
+        num('opiate10'),
+
+      opiate20:
+        num('opiate20'),
 
       pcaStartTime:
         combineDT(
@@ -1311,11 +1425,14 @@ $('#caseForm').onsubmit =
 
     if (i >= 0) {
 
-      cases[i] = c;
+      cases[i] =
+        c;
 
     } else {
 
-      cases.push(c);
+      cases.push(
+        c
+      );
     }
 
 
@@ -1323,7 +1440,9 @@ $('#caseForm').onsubmit =
 
 
     const synced =
-      await saveCaseToSupabase(c);
+      await saveCaseToSupabase(
+        c
+      );
 
 
     if (synced) {
@@ -1332,7 +1451,9 @@ $('#caseForm').onsubmit =
     }
 
 
-    showView('home');
+    showView(
+      'home'
+    );
   };
 
 
@@ -1344,7 +1465,10 @@ function editCase(id) {
         x.id === id
     );
 
-  if (!c) return;
+
+  if (!c) {
+    return;
+  }
 
 
   resetForm();
@@ -1383,6 +1507,10 @@ function editCase(id) {
     c.pca || 'No';
 
 
+  $('#pcaDrug').value =
+    c.pcaDrug || '';
+
+
   $('#itDiamorph').value =
     c.itDiamorph || 'No';
 
@@ -1397,24 +1525,56 @@ function editCase(id) {
       'Protocol';
 
 
-  [
-    'poPara',
-    'ivPara',
-    'codeine',
-    'ibuprofen',
-    'oralOpiates'
-  ].forEach(
-    k =>
-      $('#' + k).value =
-        c[k] ?? 0
-  );
+  $('#poPara').value =
+    c.poPara ?? 0;
 
 
-  // NEW:
-  // restore the ibuprofen
-  // "Not prescribed" checkbox.
+  $('#ivPara').value =
+    c.ivPara ?? 0;
+
+
+  /*
+   * Compatibility with old cases:
+   * previous "codeine" value is shown
+   * under 30 mg if the case predates
+   * the new split fields.
+   */
+  $('#codeine30').value =
+    c.codeine30 ??
+    c.codeine ??
+    0;
+
+
+  $('#codeine60').value =
+    c.codeine60 ?? 0;
+
+
+  $('#ibuprofen').value =
+    c.ibuprofen ?? 0;
+
+
   $('#ibuprofenNP').checked =
     c.ibuprofenNP === true;
+
+
+  $('#oralOpiateDrug').value =
+    c.oralOpiateDrug || '';
+
+
+  $('#opiate2_5').value =
+    c.opiate2_5 ?? 0;
+
+
+  $('#opiate5').value =
+    c.opiate5 ?? 0;
+
+
+  $('#opiate10').value =
+    c.opiate10 ?? 0;
+
+
+  $('#opiate20').value =
+    c.opiate20 ?? 0;
 
 
   splitDT(
@@ -1461,7 +1621,9 @@ function editCase(id) {
 
   $('#deleteCase')
     .classList
-    .remove('hidden');
+    .remove(
+      'hidden'
+    );
 
 
   updateConditional();
@@ -1474,7 +1636,9 @@ function editCase(id) {
         : '';
 
 
-  showView('form');
+  showView(
+    'form'
+  );
 }
 
 
@@ -1528,6 +1692,7 @@ $('#deleteCase').onclick =
         )
       );
 
+
       alert(
         'Unable to delete this case from Supabase.'
       );
@@ -1547,7 +1712,9 @@ $('#deleteCase').onclick =
 
     resetForm();
 
-    showView('home');
+    showView(
+      'home'
+    );
   };
 
 
@@ -1561,10 +1728,7 @@ function renderCases() {
   $('#obsCount')
     .textContent =
       cases.reduce(
-        (
-          a,
-          c
-        ) =>
+        (a, c) =>
           a +
           (
             c.observations
@@ -1584,13 +1748,27 @@ function renderCases() {
       ).length;
 
 
+  const first =
+    new Date(
+      AUDIT_MONDAY +
+      'T12:00:00'
+    );
+
+
+  const last =
+    new Date(
+      datePlus(
+        AUDIT_MONDAY,
+        6
+      ) +
+      'T12:00:00'
+    );
+
+
   $('#auditWeek')
     .textContent =
       `Audit week: ${
-        new Date(
-          AUDIT_MONDAY +
-          'T12:00:00'
-        ).toLocaleDateString(
+        first.toLocaleDateString(
           [],
           {
             day: '2-digit',
@@ -1599,13 +1777,7 @@ function renderCases() {
           }
         )
       } – ${
-        new Date(
-          datePlus(
-            AUDIT_MONDAY,
-            6
-          ) +
-          'T12:00:00'
-        ).toLocaleDateString(
+        last.toLocaleDateString(
           [],
           {
             day: '2-digit',
@@ -1620,7 +1792,8 @@ function renderCases() {
     $('#caseList');
 
 
-  area.innerHTML = '';
+  area.innerHTML =
+    '';
 
 
   if (!cases.length) {
@@ -1647,59 +1820,61 @@ function renderCases() {
           ) || 0
         )
     )
-    .forEach(
-      c => {
+    .forEach(c => {
 
-        const d =
-          document.createElement(
-            'div'
+      const d =
+        document.createElement(
+          'div'
+        );
+
+
+      d.className =
+        'case-item';
+
+
+      d.innerHTML =
+        `<div>
+          <b>Case ${
+            Number(
+              c.caseNumber
+            ) >= 1
+              ? c.caseNumber
+              : '—'
+          }</b>
+
+          <small>
+            ${c.date || ''} ·
+            ${esc(
+              c.procedure ||
+              'No procedure'
+            )}
+            <br>
+            ${
+              c.observations
+                ?.length ||
+              0
+            } scheduled observation(s)
+          </small>
+        </div>
+
+        <button type="button">
+          Edit
+        </button>`;
+
+
+      d.querySelector(
+        'button'
+      ).onclick =
+        () =>
+          editCase(
+            c.id
           );
 
 
-        d.className =
-          'case-item';
-
-
-        d.innerHTML =
-          `<div>
-            <b>Case ${
-              Number(
-                c.caseNumber
-              ) >= 1
-                ? c.caseNumber
-                : '—'
-            }</b>
-            <small>
-              ${c.date || ''} ·
-              ${esc(
-                c.procedure ||
-                'No procedure'
-              )}
-              <br>
-              ${
-                c.observations
-                  ?.length ||
-                0
-              } scheduled observation(s)
-            </small>
-          </div>
-          <button type="button">
-            Edit
-          </button>`;
-
-
-        d.querySelector(
-          'button'
-        ).onclick =
-          () =>
-            editCase(
-              c.id
-            );
-
-
-        area.appendChild(d);
-      }
-    );
+      area.appendChild(
+        d
+      );
+    });
 }
 
 
@@ -1710,43 +1885,68 @@ function esc(s) {
       'div'
     );
 
-  d.textContent = s;
+  d.textContent =
+    s;
 
   return d.innerHTML;
 }
 
 
+/* =========================
+   EXCEL EXPORT
+   ========================= */
+
+
 const headers = [
+
   'Case Number',
   'Date',
   'Procedure',
   'ASA',
   'Postop care',
+
   'PCA',
+  'PCA drug',
+
   'IT Diamorphine',
   'RSC',
+
   'Postop prescriptions',
+
   'PO Paracetamol doses',
   'IV Paracetamol doses',
-  'Codeine doses',
+
+  'Codeine 30 mg doses',
+  'Codeine 60 mg doses',
+
   'Ibuprofen doses',
-  'Oral Opiates',
+
+  'Oral opiate',
+  'Opiate 2.5 mg doses',
+  'Opiate 5 mg doses',
+  'Opiate 10 mg doses',
+  'Opiate 20 mg doses',
+
   'PCA start',
   'RSC start',
   'IT Diamorphine time',
   'Recovery arrival',
   'Discharge',
+
   'Minimum required',
   'Monitoring reason',
   'Observation postop',
   'Actual observation time',
+
   'Pain score',
   'N & V score',
   'Sedation score',
   'Function activity',
   'Itching',
   'Hallucination',
+
   'Total PCA administered',
+
   'LA bolus',
   'RSC rate',
   'LA toxicity score',
@@ -1779,151 +1979,202 @@ function exportRows() {
           ) || 0
         )
     )
-    .forEach(
-      c => {
+    .forEach(c => {
 
-        const obs =
-          c.observations?.length
-            ? c.observations
-            : [{}];
+      const obs =
+        c.observations?.length
+          ? c.observations
+          : [{}];
 
 
-        obs.forEach(
-          (o, i) => {
+      obs.forEach(
+        (o, i) => {
 
-            rows.push([
+          rows.push([
 
-              i === 0
-                ? c.caseNumber
-                : '',
+            i === 0
+              ? c.caseNumber
+              : '',
 
-              i === 0
-                ? c.date
-                : '',
+            i === 0
+              ? c.date
+              : '',
 
-              i === 0
-                ? c.procedure
-                : '',
+            i === 0
+              ? c.procedure
+              : '',
 
-              i === 0
-                ? c.asa
-                : '',
+            i === 0
+              ? c.asa
+              : '',
 
-              i === 0
-                ? c.postopCare
-                : '',
+            i === 0
+              ? c.postopCare
+              : '',
 
-              i === 0
-                ? c.pca
-                : '',
 
-              i === 0
-                ? c.itDiamorph
-                : '',
+            i === 0
+              ? c.pca
+              : '',
 
-              i === 0
-                ? c.rsc
-                : '',
+            i === 0
+              ? c.pcaDrug
+              : '',
 
-              i === 0
-                ? c.postopPrescriptions
-                : '',
 
-              i === 0
-                ? c.poPara
-                : '',
+            i === 0
+              ? c.itDiamorph
+              : '',
 
-              i === 0
-                ? c.ivPara
-                : '',
+            i === 0
+              ? c.rsc
+              : '',
 
-              i === 0
-                ? c.codeine
-                : '',
 
-              // NEW:
-              // NP = Not prescribed
-              i === 0
-                ? (
-                    c.ibuprofenNP
-                      ? 'NP'
-                      : c.ibuprofen
-                  )
-                : '',
+            i === 0
+              ? c.postopPrescriptions
+              : '',
 
-              i === 0
-                ? c.oralOpiates
-                : '',
 
-              i === 0
-                ? c.pcaStartTime
-                : '',
+            i === 0
+              ? c.poPara
+              : '',
 
-              i === 0
-                ? c.rscStartTime
-                : '',
+            i === 0
+              ? c.ivPara
+              : '',
 
-              i === 0
-                ? c.itTime
-                : '',
 
-              i === 0
-                ? c.recoveryTime
-                : '',
+            i === 0
+              ? (
+                  c.codeine30 ??
+                  c.codeine ??
+                  0
+                )
+              : '',
 
-              i === 0
-                ? c.dischargeTime
-                : '',
+            i === 0
+              ? (
+                  c.codeine60 ??
+                  0
+                )
+              : '',
 
-              o.requiredAt || '',
 
-              o.reason || '',
+            i === 0
+              ? (
+                  c.ibuprofenNP
+                    ? 'NP'
+                    : c.ibuprofen
+                )
+              : '',
 
-              o.observationPostop || '',
 
-              o.actualTime ||
-              (
-                o.actualDate &&
-                o.actualClock
-                  ? `${o.actualDate}T${o.actualClock}`
-                  : ''
-              ),
+            i === 0
+              ? c.oralOpiateDrug
+              : '',
 
-              o.painScore || '',
+            i === 0
+              ? (
+                  c.opiate2_5 ??
+                  0
+                )
+              : '',
 
-              o.nvScore || '',
+            i === 0
+              ? (
+                  c.opiate5 ??
+                  0
+                )
+              : '',
 
-              o.sedationScore || '',
+            i === 0
+              ? (
+                  c.opiate10 ??
+                  0
+                )
+              : '',
 
-              o.functionalActivity || '',
+            i === 0
+              ? (
+                  c.opiate20 ??
+                  0
+                )
+              : '',
 
-              o.itching || '',
 
-              o.hallucination || '',
+            i === 0
+              ? c.pcaStartTime
+              : '',
 
-              o.totalPca || '',
+            i === 0
+              ? c.rscStartTime
+              : '',
 
-              o.laBolus || '',
+            i === 0
+              ? c.itTime
+              : '',
 
-              o.rscRate || '',
+            i === 0
+              ? c.recoveryTime
+              : '',
 
-              o.laToxicity || '',
+            i === 0
+              ? c.dischargeTime
+              : '',
 
-              o.laSite || '',
 
-              o.motorPower || '',
+            o.requiredAt || '',
 
-              o.sensoryScore || '',
+            o.reason || '',
 
-              o.dermatomeHeight || '',
+            o.observationPostop || '',
 
-              o.slt || ''
+            o.actualTime ||
+            (
+              o.actualDate &&
+              o.actualClock
+                ? `${o.actualDate}T${o.actualClock}`
+                : ''
+            ),
 
-            ]);
-          }
-        );
-      }
-    );
+
+            o.painScore || '',
+
+            o.nvScore || '',
+
+            o.sedationScore || '',
+
+            o.functionalActivity || '',
+
+            o.itching || '',
+
+            o.hallucination || '',
+
+
+            o.totalPca || '',
+
+
+            o.laBolus || '',
+
+            o.rscRate || '',
+
+            o.laToxicity || '',
+
+            o.laSite || '',
+
+            o.motorPower || '',
+
+            o.sensoryScore || '',
+
+            o.dermatomeHeight || '',
+
+            o.slt || ''
+
+          ]);
+        }
+      );
+    });
 
 
   return rows;
@@ -1943,6 +2194,7 @@ $('#exportExcel').onclick =
     ws['!cols'] =
       headers.map(
         (h, i) => ({
+
           wch:
             i === 2
               ? 45
@@ -1975,10 +2227,18 @@ $('#exportExcel').onclick =
       `Gynae_Audit_${
         new Date()
           .toISOString()
-          .slice(0, 10)
+          .slice(
+            0,
+            10
+          )
       }.xlsx`
     );
   };
+
+
+/* =========================
+   BACKUP
+   ========================= */
 
 
 $('#exportBackup').onclick =
@@ -1990,11 +2250,14 @@ $('#exportBackup').onclick =
           JSON.stringify(
             {
               version: 3,
+
               auditMonday:
                 AUDIT_MONDAY,
+
               exportedAt:
                 new Date()
                   .toISOString(),
+
               cases
             },
             null,
@@ -2024,7 +2287,10 @@ $('#exportBackup').onclick =
       `Gynae_Audit_Backup_${
         new Date()
           .toISOString()
-          .slice(0, 10)
+          .slice(
+            0,
+            10
+          )
       }.json`;
 
 
@@ -2047,7 +2313,10 @@ $('#importBackup').onchange =
     const f =
       e.target.files[0];
 
-    if (!f) return;
+
+    if (!f) {
+      return;
+    }
 
 
     try {
@@ -2152,7 +2421,9 @@ $('#importBackup').onchange =
       );
 
 
-      showView('home');
+      showView(
+        'home'
+      );
 
     } catch (error) {
 
@@ -2168,9 +2439,15 @@ $('#importBackup').onchange =
 
     } finally {
 
-      e.target.value = '';
+      e.target.value =
+        '';
     }
   };
+
+
+/* =========================
+   SERVICE WORKER + START
+   ========================= */
 
 
 if (
@@ -2179,7 +2456,9 @@ if (
 
   navigator
     .serviceWorker
-    .register('./sw.js')
+    .register(
+      './sw.js'
+    )
     .catch(
       console.error
     );
