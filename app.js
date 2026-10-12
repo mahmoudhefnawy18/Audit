@@ -669,6 +669,15 @@ function updateConditional() {
       );
     });
 
+  $$('.itFields')
+  .forEach(x => {
+
+    x.classList.toggle(
+      'hidden',
+      !it
+    );
+  });
+
 
   if (!(p || r || it)) {
 
