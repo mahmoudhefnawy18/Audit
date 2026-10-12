@@ -808,205 +808,139 @@ function getDischarge() {
 function generateSchedule() {
 
   if (!monitoringSelected()) {
-
-    $('#observations')
-      .innerHTML =
-        '';
-
+    $('#observations').innerHTML = '';
     return;
   }
 
+  const discharge = getDischarge();
 
-  const discharge =
-    getDischarge();
+  const pca =
+    val('pca') === 'Yes';
 
+  const rsc =
+    val('rsc') === 'Yes';
 
-  let entries = [];
+  const it =
+    val('itDiamorph') === 'Yes';
 
+  const starts = [];
 
-  if (
-    val('pca') === 'Yes'
-  ) {
-
-    entries.push(
-      ...protocolTimes(
-        parseDT(
-          combineDT(
-            'pcaStartDate',
-            'pcaStartClock'
-          )
-        ),
-        discharge,
-        'PCA'
-      )
+  if (pca) {
+    const d = parseDT(
+      combineDT('pcaStartDate', 'pcaStartClock')
     );
-  }
 
-
-  if (
-    val('rsc') === 'Yes'
-  ) {
-
-    entries.push(
-      ...protocolTimes(
-        parseDT(
-          combineDT(
-            'rscStartDate',
-            'rscStartClock'
-          )
-        ),
-        discharge,
-        'RSC'
-      )
-    );
-  }
-
-
-  if (
-    val('itDiamorph') === 'Yes'
-  ) {
-
-    const it =
-      parseDT(
-        combineDT(
-          'itDate',
-          'itClock'
-        )
-      );
-
-
-    const rec =
-      parseDT(
-        combineDT(
-          'recoveryDate',
-          'recoveryClock'
-        )
-      );
-
-
-    entries.push(
-      ...protocolTimes(
-        it,
-        discharge,
-        'IT diamorphine'
-      ).filter(
-        x =>
-          !rec ||
-          x.t >= rec
-      )
-    );
-  }
-
-
-  const merged =
-    new Map();
-
-
-  entries.forEach(x => {
-
-    const k =
-      localDT(
-        x.t
-      );
-
-
-    if (
-      merged.has(k)
-    ) {
-
-      const old =
-        merged.get(k);
-
-
-      if (
-        !old.reason.includes(
-          x.reason
-        )
-      ) {
-
-        old.reason +=
-          ' + ' +
-          x.reason;
-      }
-
-    } else {
-
-      merged.set(
-        k,
-        {
-          requiredAt:
-            k,
-
-          reason:
-            x.reason
-        }
-      );
+    if (d && !isNaN(d.getTime())) {
+      starts.push({
+        time: d,
+        type: 'PCA'
+      });
     }
-  });
+  }
 
-
-  const old =
-    new Map(
-      collectObs()
-        .map(
-          o => [
-            o.requiredAt,
-            o
-          ]
-        )
+  if (rsc) {
+    const d = parseDT(
+      combineDT('rscStartDate', 'rscStartClock')
     );
 
+    if (d && !isNaN(d.getTime())) {
+      starts.push({
+        time: d,
+        type: 'RSC'
+      });
+    }
+  }
 
-  const schedule =
-    [...merged.values()]
-      .sort(
-        (a, b) =>
-          a.requiredAt
-            .localeCompare(
-              b.requiredAt
-            )
-      )
-      .map(x => ({
+  let start = null;
+  let reason = '';
+  let recovery = null;
 
-        ...x,
+  // PCA/RSC always take priority
+  // over IT diamorphine.
 
-        ...(
-          old.get(
-            x.requiredAt
-          ) || {}
-        ),
+  if (starts.length) {
 
-        requiredAt:
-          x.requiredAt,
+    starts.sort(
+      (a, b) =>
+        a.time.getTime() -
+        b.time.getTime()
+    );
 
-        reason:
-          x.reason
-      }));
+    start = starts[0].time;
 
+    reason = [
+      pca ? 'PCA' : '',
+      rsc ? 'RSC' : '',
+      it ? 'IT diamorphine' : ''
+    ].filter(Boolean).join(' + ');
 
-  $('#observations')
-    .innerHTML =
-      '';
+  } else if (it && !pca && !rsc) {
 
+    start = parseDT(
+      combineDT('itDate', 'itClock')
+    );
 
-  schedule.forEach(
-    addObservation
+    recovery = parseDT(
+      combineDT('recoveryDate', 'recoveryClock')
+    );
+
+    reason = 'IT diamorphine';
+  }
+
+  const old = new Map(
+    collectObs().map(o => [
+      o.requiredAt,
+      o
+    ])
   );
 
+  let schedule = [];
 
-  $('#scheduleHint')
-    .textContent =
-      schedule.length
-        ? `${schedule.length} required observation time(s), stopping at discharge or 48 hours.`
-        : 'Enter the relevant start/recovery times to generate the schedule.';
+  if (start && !isNaN(start.getTime())) {
 
+    schedule = protocolTimes(
+      start,
+      discharge,
+      reason
+    )
+
+    // For IT-only patients, observations
+    // during theatre are documented on
+    // the anaesthesia chart.
+
+    .filter(x => {
+
+      if (!recovery) {
+        return true;
+      }
+
+      return x.t > recovery;
+    })
+
+    .map(x => {
+
+      const requiredAt =
+        localDT(x.t);
+
+      return {
+        ...(old.get(requiredAt) || {}),
+        requiredAt,
+        reason
+      };
+    });
+  }
+
+  $('#observations').innerHTML = '';
+
+  schedule.forEach(addObservation);
+
+  $('#scheduleHint').textContent =
+    schedule.length
+      ? `${schedule.length} required observations. One schedule from the selected intervention start, stopping at discharge or 48 hours.`
+      : 'Enter the relevant intervention start and recovery times.';
 
   updateConditional();
 }
-
-
-$('#generateObs').onclick =
-  generateSchedule;
 
 
 [
