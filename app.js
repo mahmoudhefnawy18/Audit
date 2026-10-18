@@ -156,19 +156,93 @@ function renderCases(){
  });
 }
 
-const caseColumns=[['anaesthesiaType','Anaesthesia type'],['intraopMedications','Intraoperative medications'],['ondansetronRoute','Ondansetron route'],['cyclizineRoute','Cyclizine route'],['caseNumber','Case Number'],['date','Date'],['procedure','Procedure'],['asa','ASA'],['postopCare','Postop care'],['pca','PCA'],['pcaDrug','PCA drug'],['itDiamorph','IT Diamorphine'],['rsc','RSC'],['postopPrescriptions','Postop prescriptions'],['poPara','PO Paracetamol doses'],['ivPara','IV Paracetamol doses'],['codeine30','Codeine 30 mg doses'],['codeine60','Codeine 60 mg doses'],['ibuprofen','Ibuprofen doses'],['diclofenacTheatre','Diclofenac given in theatre'],['diclofenacPR','Diclofenac PR doses'],['oralOpiateDrug','Oral opiate'],['opiate2_5','Opiate 2.5 mg doses'],['opiate5','Opiate 5 mg doses'],['opiate10','Opiate 10 mg doses'],['opiate20','Opiate 20 mg doses'],['otherAnalgesia','Other analgesia'],['ondansetron','Ondansetron doses'],['cyclizine','Cyclizine doses'],['otherAntiemetics','Other antiemetics'],['chlorphenamine','Chlorphenamine doses'],['macrogol','Macrogol doses'],['peppermint','Peppermint pill doses'],['otherLaxatives','Other laxatives'],['pcaStartTime','PCA start'],['pcaStopTime','PCA stoppage'],['rscStartTime','RSC start'],['rscStopTime','RSC stoppage'],['itTime','IT Diamorphine time'],['recoveryTime','Recovery arrival'],['dischargeTime','Discharge']];
-const obsColumns=[['requiredAt','Minimum required'],['reason','Monitoring reason'],['observationPostop','Observation postop'],['actualTime','Actual observation time'],['painScore','Pain score'],['nvScore','N & V score'],['sedationScore','Sedation score'],['functionalActivity','Function activity'],['itching','Itching'],['hallucination','Hallucination'],['totalPca','Total PCA administered'],['laBolus','LA bolus'],['rscRate','RSC rate'],['laToxicity','LA toxicity score'],['laSite','LA site assessment'],['motorPower','Motor power'],['sensoryScore','Sensory score'],['dermatomeHeight','Dermatome height'],['slt','SLT']];
-function exportRows(period){const rows=[[...caseColumns,...obsColumns].map(x=>x[1])];periodCases(period).slice().sort((a,b)=>(a.caseNumber||0)-(b.caseNumber||0)).forEach(c=>{(c.observations?.length?c.observations:[{}]).forEach((o,i)=>{const s={p: c.pca==='Yes',r:c.rsc==='Yes',it:c.itDiamorph==='Yes',t:{pcaStart:parseDT(c.pcaStartTime),pcaStop:parseDT(c.pcaStopTime),rscStart:parseDT(c.rscStartTime),rscStop:parseDT(c.rscStopTime)}};const when=parseDT(o.requiredAt);rows.push([...caseColumns.map(([k])=>{if(i)return '';if(k==='intraopMedications')return (c.intraopMedications||[]).map(m=>[m.drug,m.dose,m.route].filter(Boolean).join(' / ')).join('; ');if(k==='ibuprofen')return c.ibuprofenNP?'NP':c.ibuprofen??'';if(k==='codeine30')return c.codeine30??c.codeine??0;return c[k]??'';}),...obsColumns.map(([k])=>{if(k==='totalPca'&&when&&!(s.p&&activeAt(s.t.pcaStart,s.t.pcaStop,when)))return '';if(['laBolus','rscRate','laToxicity','laSite'].includes(k)&&when&&!(s.r&&activeAt(s.t.rscStart,s.t.rscStop,when)))return '';if(['motorPower','sensoryScore','dermatomeHeight','slt'].includes(k)&&!s.it)return '';return o[k]??'';})]);});});return rows;}
+/* Excel export: exactly one worksheet per audit period. */
+const caseColumns=[
+ ['caseNumber','Case Number'],['date','Date'],['procedure','Procedure'],['asa','ASA'],
+ ['anaesthesiaType','Anaesthesia type'],['intraopMedications','Intraoperative medications'],
+ ['postopCare','Postop care'],['pca','PCA'],['pcaDrug','PCA drug'],
+ ['itDiamorph','IT Diamorphine'],['rsc','RSC'],['postopPrescriptions','Postop prescriptions'],
+ ['poPara','PO Paracetamol doses'],['ivPara','IV Paracetamol doses'],
+ ['codeine30','Codeine 30 mg doses'],['codeine60','Codeine 60 mg doses'],
+ ['ibuprofen','Ibuprofen doses'],['diclofenacTheatre','Diclofenac given in theatre'],
+ ['diclofenacPR','Diclofenac PR doses'],['oralOpiateDrug','Oral opiate'],
+ ['opiate2_5','Opiate 2.5 mg doses'],['opiate5','Opiate 5 mg doses'],
+ ['opiate10','Opiate 10 mg doses'],['opiate20','Opiate 20 mg doses'],
+ ['otherAnalgesia','Other analgesia'],['ondansetron','Ondansetron doses'],
+ ['ondansetronRoute','Ondansetron route'],['cyclizine','Cyclizine doses'],
+ ['cyclizineRoute','Cyclizine route'],['otherAntiemetics','Other antiemetics'],
+ ['chlorphenamine','Chlorphenamine doses'],['macrogol','Macrogol doses'],
+ ['peppermint','Peppermint pill doses'],['otherLaxatives','Other laxatives'],
+ ['pcaStartTime','PCA start'],['pcaStopTime','PCA stoppage'],
+ ['rscStartTime','RSC start'],['rscStopTime','RSC stoppage'],
+ ['itTime','IT Diamorphine time'],['recoveryTime','Recovery arrival'],
+ ['dischargeTime','Discharge']
+];
+const simpleColumns=[['date','Observation Date'],['time','Observation Time'],
+ ['painScore','Pain score (unscheduled)'],['nvScore','N & V score (unscheduled)']];
+const obsColumns=[
+ ['requiredAt','Minimum required'],['reason','Monitoring reason'],
+ ['observationPostop','Observation postop'],['actualTime','Actual observation time'],
+ ['painScore','Pain score'],['nvScore','N & V score'],
+ ['sedationScore','Sedation score'],['functionalActivity','Function activity'],
+ ['itching','Itching'],['hallucination','Hallucination'],
+ ['totalPca','Total PCA administered'],['laBolus','LA bolus'],
+ ['rscRate','RSC rate'],['laToxicity','LA toxicity score'],
+ ['laSite','LA site assessment'],['motorPower','Motor power'],
+ ['sensoryScore','Sensory score'],['dermatomeHeight','Dermatome height'],['slt','SLT']
+];
+function formatIntraopMedication(m){
+ const rawDrug=String(m.drug||'').trim();
+ const rawDose=String(m.dose||'').trim();
+ const route=String(m.route||'').trim();
+ // For Other, the free-text dose normally includes the drug name.
+ const drug=rawDrug==='Other'?'':rawDrug;
+ const dose=(rawDrug==='Remifentanil infusion'&&rawDose.toLowerCase()==='infusion')?'':rawDose;
+ const parts=[drug,dose,route];
+ // Infusion without a separately recorded dose/route is shown as a single name.
+ if(rawDrug==='Remifentanil infusion'&&!dose)return rawDrug;
+ return parts.filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+}
+function exportRows(period){
+ const rows=[[...caseColumns,...simpleColumns,...obsColumns].map(([,heading])=>heading)];
+ periodCases(period).slice().sort((a,b)=>(a.caseNumber||0)-(b.caseNumber||0)).forEach(c=>{
+  const scheduled=c.observations||[];
+  const simple=c.simpleObservations||[];
+  // Each entry has its own row, never forcing unrelated observations together.
+  const entries=[...simple.map(o=>({kind:'simple',o})),...scheduled.map(o=>({kind:'scheduled',o}))];
+  if(!entries.length)entries.push({kind:'none',o:{}});
+  entries.forEach(({kind,o},i)=>{
+   const caseCells=caseColumns.map(([k])=>{
+    if(i>0)return '';
+    if(k==='intraopMedications')return (c.intraopMedications||[]).map(formatIntraopMedication).filter(Boolean).join('\n');
+    if(k==='ibuprofen')return c.ibuprofenNP?'NP':c.ibuprofen??'';
+    if(k==='codeine30')return c.codeine30??c.codeine??0;
+    return c[k]??'';
+   });
+   const simpleCells=simpleColumns.map(([k])=>kind==='simple'?(o[k]??''):'');
+   const when=kind==='scheduled'?parseDT(o.requiredAt):null;
+   const pcaActive=c.pca==='Yes'&&(!when||activeAt(parseDT(c.pcaStartTime),parseDT(c.pcaStopTime),when));
+   const rscActive=c.rsc==='Yes'&&(!when||activeAt(parseDT(c.rscStartTime),parseDT(c.rscStopTime),when));
+   const obsCells=obsColumns.map(([k])=>{
+    if(kind!=='scheduled')return '';
+    if(k==='totalPca'&&!pcaActive)return '';
+    if(['laBolus','rscRate','laToxicity','laSite'].includes(k)&&!rscActive)return '';
+    if(['motorPower','sensoryScore','dermatomeHeight','slt'].includes(k)&&c.itDiamorph!=='Yes')return '';
+    return o[k]??'';
+   });
+   rows.push([...caseCells,...simpleCells,...obsCells]);
+  });
+ });
+ return rows;
+}
 $('#exportExcel').onclick=()=>{
  if(!window.XLSX){alert('Excel library could not load. Check internet connection.');return;}
  const wb=XLSX.utils.book_new();
- for(const [period,label] of [[HISTORICAL_PERIOD,'01-07 Feb 2025'],[CURRENT_PERIOD,'Current audit']]){
+ for(const [period,label] of [[CURRENT_PERIOD,'Current audit'],[HISTORICAL_PERIOD,'01-07 Feb 2025']]){
   const ws=XLSX.utils.aoa_to_sheet(exportRows(period));
-  ws['!cols']=[...caseColumns,...obsColumns].map(([,h])=>({wch:Math.max(13,Math.min(32,h.length+2))}));
+  ws['!cols']=[...caseColumns,...simpleColumns,...obsColumns].map(([k,h])=>({wch:k==='intraopMedications'?44:Math.max(13,Math.min(32,h.length+2))}));
+  // Each intraoperative medication is separated by a line break inside its cell.
   XLSX.utils.book_append_sheet(wb,ws,label);
-  const simpleRows=[['Case Number','Case Date','Observation Date','Observation Time','Pain score','N & V score']];
-  periodCases(period).forEach(c=>(c.simpleObservations||[]).forEach(o=>simpleRows.push([c.caseNumber,c.date,o.date||'',o.time||'',o.painScore??'',o.nvScore??''])));
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(simpleRows),period===HISTORICAL_PERIOD?'Feb 2025 Pain NV':'Current Pain NV');
  }
  XLSX.writeFile(wb,`Gynae_Audit_Two_Periods_${isoDate(new Date())}.xlsx`);
 };
